@@ -1,4 +1,3 @@
-const path = require('path')
 require('dotenv').config({ path: 'variables.env' });
 const config = require('./config');
 const fetch = require("node-fetch");
@@ -66,16 +65,15 @@ client.chat.on('chatMessage', function(msgObj) {
       chatId = msgObj.chat_id,
       serverTimestamp = msgObj.server_timestamp,
       ordinal = msgObj.ordinal;
-      // SERVER LINE is 50975794
-                        // ** finish admin commands
   let command = includes(message, config.commands);
   let adminCommand = includes(message, config.adminCommands);
+  
     if (message) {
       if (ordinal > 0) {
         sendMsg(groupId, chatId, "Stop spamming commands, what's wrong with you?");
       } else {
         if (command || adminCommand) {
-          if (chatId) { // SERVER LINE channel //if (chatId == 50975794) { 
+          if (chatId == 50975794) { // SERVER LINE channel //if (chatId == 50975794) { 
               if (command) {
                   output(steamidObj, groupId, chatId, command, serverTimestamp, ordinal);
               } else if (adminCommand) {
@@ -106,20 +104,13 @@ client.chat.on('chatMessage', function(msgObj) {
 
 
 function sendMsg(groupId, chatId, msgToSend) {
-  try {
     if (!executing) {
       executing = true;
       setTimeout(() => {
           client.chat.sendChatMessage(groupId, chatId, msgToSend);
           executing = false;
       }, 1000);
-    } else {
-      console.log('already executing, skipping command');
-    }
-  } catch (error) {
-    console.error("WE CATCHIN ERRORS NOW");
-    console.log(error);
-  }
+    } 
 }
 
 
