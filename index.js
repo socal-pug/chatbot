@@ -206,8 +206,8 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
         sendMsg(groupId, chatId, list.getListString());
     }
   } else if (command === '!commands') {
-    sendMsg(groupId, chatId, 'Commands: \n'+'!line Show the current line\n!add Add yourself\n'+
-    '!remove Remove yourself\n!next Alert the next player that it\'s their turn\n'+'!replace Put whoever was skipped back in front of the line');
+    sendMsg(groupId, chatId, 'Commands: '+'!line Show the current line, !add Add yourself, '+
+    '!remove Remove yourself, !next Alert the next player that it\'s their turn,'+' !replace Put whoever was skipped back in front of the line');
   } else if (command === '!need') { // show server stats & ping @all
     var currentPlayers = await getCurrentPlayers();
     sendMsg(groupId, chatId, '[mention=0]@all[/mention] '+ currentPlayers + ' players in the server! Join up! 66.165.238.178:27018');
