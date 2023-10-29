@@ -60,7 +60,7 @@ client.chat.on('chatMessage', function(msgObj) {
   let steamidObj = msgObj.steamid_sender,
       message = msgObj.message,
       accountid = msgObj.accountid,
-      bbcode = msgObj.message_bbcode_parsed;
+      mentions = msgObj.mentions;
 
 
   let groupId = msgObj.chat_group_id,
@@ -71,7 +71,11 @@ client.chat.on('chatMessage', function(msgObj) {
   let adminCommand = includes(message, config.adminCommands);
   
     if (message) {
-      console.log(bbcode);
+    //  if (mentions) {
+    //    if (mentions.mention_steamids.length > 0) {
+    //      const taggedId = mentions.mention_steamids[0]['accountid'];
+    //    }
+    //  }
       if (ordinal > 0) {
         sendMsg(groupId, chatId, "Stop spamming commands, what's wrong with you?");
       } else {
@@ -214,9 +218,9 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
   } else if (command === '!commands') {
     sendMsg(groupId, chatId, 'Commands: '+'!line Show the current line, !add Add yourself, '+
     '!remove Remove yourself, !next Alert the next player that it\'s their turn,'+' !replace Put whoever was skipped back in front of the line');
-  } else if (command === '!need') { // show server stats & ping @all
+  } else if (command === '!need') { // show server stats; ping @all is impossible because bbcode is retarded
     var currentPlayers = await getCurrentPlayers();
-    sendMsg(groupId, chatId, '[mention="all"]@all[/mention] '+ currentPlayers + ' players in the server! Join up! 66.165.238.178:27018');
+    sendMsg(groupId, chatId, currentPlayers + ' players in the server! Join up! 66.165.238.178:27018');
   } else if (command === '!skip') {
     const next = list.peek();
     if (next) { 
