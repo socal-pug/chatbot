@@ -77,7 +77,7 @@ client.chat.on('chatMessage', function(msgObj) {
     //    }
     //  }
       if (ordinal > 0) {
-        sendMsg(groupId, chatId, "Stop spamming commands, what's wrong with you?");
+     //   sendMsg(groupId, chatId, "Stop spamming commands, what's wrong with you?");
       } else {
         if (command || adminCommand) {
           if (command.toLowerCase() == '!updates') {
