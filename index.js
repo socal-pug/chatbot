@@ -59,7 +59,9 @@ function isAdmin(id, admins) {
 client.chat.on('chatMessage', function(msgObj) {
   let steamidObj = msgObj.steamid_sender,
       message = msgObj.message,
-      accountid = msgObj.accountid;
+      accountid = msgObj.accountid,
+      bbcode = msgObj.message_bbcode_parsed;
+
 
   let groupId = msgObj.chat_group_id,
       chatId = msgObj.chat_id,
@@ -69,10 +71,14 @@ client.chat.on('chatMessage', function(msgObj) {
   let adminCommand = includes(message, config.adminCommands);
   
     if (message) {
+      console.log(bbcode);
       if (ordinal > 0) {
         sendMsg(groupId, chatId, "Stop spamming commands, what's wrong with you?");
       } else {
         if (command || adminCommand) {
+          if (command.toLowerCase() == '!updates') {
+            sendMsg(groupId, chatId, "10/28/23 changes & fixes: Reduced the number of times the line is automatically displayed after certain commands to reduce clutter; Detect spam & prevent bot from crashing; !skip now completely ends the current !next process to prevent unnecessary messages & allow for faster line management");
+          }
           if (chatId == 50975794) { // SERVER LINE channel //if (chatId == 50975794) { 
               if (command) {
                   output(steamidObj, groupId, chatId, command, serverTimestamp, ordinal);
@@ -210,10 +216,10 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
     '!remove Remove yourself, !next Alert the next player that it\'s their turn,'+' !replace Put whoever was skipped back in front of the line');
   } else if (command === '!need') { // show server stats & ping @all
     var currentPlayers = await getCurrentPlayers();
-    sendMsg(groupId, chatId, '[mention=0]@all[/mention] '+ currentPlayers + ' players in the server! Join up! 66.165.238.178:27018');
+    sendMsg(groupId, chatId, '[mention="all"]@all[/mention] '+ currentPlayers + ' players in the server! Join up! 66.165.238.178:27018');
   } else if (command === '!skip') {
     const next = list.peek();
-    if (next) {
+    if (next) { 
       list.dequeue(next);
       list.setLastSkipped(next);
       playerCalledNext.set(next, false);
