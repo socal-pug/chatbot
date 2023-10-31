@@ -236,6 +236,8 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
     } else {
       sendMsg(groupId, chatId, 'No one has been recently skipped');
     }
+  } else if (command === '!website') {
+    sendMsg(groupId, chatId, 'http://www.socalpug.com/underconstruction');
   }
   setTimeout(() => {
     client.chat.deleteChatMessages(groupId, chatId, [{ server_timestamp: serverTimestamp, ordinal: ordinal }]); 
