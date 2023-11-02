@@ -67,8 +67,9 @@ client.chat.on('chatMessage', function(msgObj) {
       chatId = msgObj.chat_id,
       serverTimestamp = msgObj.server_timestamp,
       ordinal = msgObj.ordinal;
-  let command = includes(message, config.commands);
+  let lineCommand = includes(message, config.lineCommands);
   let adminCommand = includes(message, config.adminCommands);
+  let globalCommand = includes(message, config.globalCommands);
   
     if (message) {
     //  if (mentions) {
@@ -79,13 +80,10 @@ client.chat.on('chatMessage', function(msgObj) {
       if (ordinal > 0) {
      //   sendMsg(groupId, chatId, "Stop spamming commands, what's wrong with you?");
       } else {
-        if (command || adminCommand) {
-          if (command.toLowerCase() == '!updates') {
-            sendMsg(groupId, chatId, "10/28/23 changes & fixes: Reduced the number of times the line is automatically displayed after certain commands to reduce clutter; Detect spam & prevent bot from crashing; !skip now completely ends the current !next process to prevent unnecessary messages & allow for faster line management");
-          }
+        if (lineCommand || adminCommand) {
           if (chatId == 50975794) { // SERVER LINE channel //if (chatId == 50975794) { 
-              if (command) {
-                  output(steamidObj, groupId, chatId, command, serverTimestamp, ordinal);
+              if (lineCommand) {
+                  output(steamidObj, groupId, chatId, lineCommand, serverTimestamp, ordinal);
               } else if (adminCommand) {
                   const id = steamidObj.getSteamID64();
                   if (isAdmin(id, config.admins)) {
@@ -101,6 +99,8 @@ client.chat.on('chatMessage', function(msgObj) {
           } else {
             sendMsg(groupId, chatId, "Use the SERVER LINE channel for line commands.");
           }
+      } else if (globalCommand) {
+         output(steamidObj, groupId, chatId, globalCommand, serverTimestamp, ordinal);
       } else if (message.length > 1 && message.charAt(0) == "!") {
         sendMsg(groupId, chatId, "Unknown command: "+message+"\nType !commands to see options.");
       } else if (message.includes("<") || message.includes(">")) {
@@ -238,6 +238,8 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
     }
   } else if (command === '!website') {
     sendMsg(groupId, chatId, 'http://www.socalpug.com/underconstruction');
+  } else if (command === '!updates') {
+    sendMsg(groupId, chatId, "10/28/23 changes & fixes: Reduced the number of times the line is automatically displayed after certain commands to reduce clutter; Detect spam & prevent bot from crashing; !skip now completely ends the current !next process to prevent unnecessary messages & allow for faster line management");
   }
   setTimeout(() => {
     client.chat.deleteChatMessages(groupId, chatId, [{ server_timestamp: serverTimestamp, ordinal: ordinal }]); 
