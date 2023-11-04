@@ -133,16 +133,22 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
       list.dequeue(sender);  
       sendMsg(groupId, chatId, 'You are already in the game server.');
     } else {
-      if (list.enqueue(sender)) {
-        if (!nameToSteamIdObj.has(sender)) {
-          nameToSteamIdObj.set(sender, steamidObj);
+      var full = await isServerFull();
+      if (full.startsWith('\"false\"') && list.isEmpty()) { 
+        sendMsg(groupId, chatId, "NO LINE and slots are open in the server - join up!");
+      }
+      else {
+        if (list.enqueue(sender)) {
+          if (!nameToSteamIdObj.has(sender)) {
+            nameToSteamIdObj.set(sender, steamidObj);
+          }
+          if (!playerCalledNext.has(sender)) {
+            playerCalledNext.set(sender, false);
+          }
+          sendMsg(groupId, chatId, list.getListString());
+        } else {
+          sendMsg(groupId, chatId, "You are already in line.");
         }
-        if (!playerCalledNext.has(sender)) {
-          playerCalledNext.set(sender, false);
-        }
-        sendMsg(groupId, chatId, list.getListString());
-      } else {
-        sendMsg(groupId, chatId, "You are already in line.");
       }
     }
   } else if (command === '!line') {
@@ -227,7 +233,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
       list.dequeue(next);
       list.setLastSkipped(next);
       playerCalledNext.set(next, false);
-      sendMsg(groupId, chatId, next + ' removed from front of the line by ' + sender);
+      sendMsg(groupId, chatId, next + ' removed from the front of the line. If this was a mistake, use !replace to put him back');
     }
   } else if (command === '!replace') {
     if (list.replace()) {
