@@ -81,7 +81,7 @@ client.chat.on('chatMessage', function(msgObj) {
      //   sendMsg(groupId, chatId, "Stop spamming commands, what's wrong with you?");
       } else {
         if (lineCommand || adminCommand) {
-          if (chatId) { // SERVER LINE channel //if (chatId == 50975794) { 
+          if (chatId == 50975794) { // SERVER LINE channel //if (chatId == 50975794) { 
               if (lineCommand) {
                   output(steamidObj, groupId, chatId, lineCommand, serverTimestamp, ordinal);
               } else if (adminCommand) {
