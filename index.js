@@ -81,7 +81,7 @@ client.chat.on('chatMessage', function(msgObj) {
      //   sendMsg(groupId, chatId, "Stop spamming commands, what's wrong with you?");
       } else {
         if (lineCommand || adminCommand) {
-          if (chatId) { // SERVER LINE channel //if (chatId == 50975794) { 
+          if (chatId == 50975794) { // SERVER LINE channel //if (chatId == 50975794) { 
               if (lineCommand) {
                   output(steamidObj, groupId, chatId, lineCommand, serverTimestamp, ordinal);
               } else if (adminCommand) {
@@ -119,8 +119,11 @@ function sendMsg(groupId, chatId, msgToSend) {
       setTimeout(() => {
           client.chat.sendChatMessage(groupId, chatId, msgToSend);
           executing = false;
-      }, 1000);
-    } 
+      }, 1400);
+    }  else {
+      console.log('skipping '+msgToSend);
+      console.log('already executing');
+    }
 }
 
 
@@ -154,8 +157,8 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
   } else if (command === '!line') {
       var full = await isServerFull();
       if (full.startsWith('\"false\"')) { // not full
-        if (list.isEmpty()) {
-          sendMsg(groupId, chatId, "NO LINE and slots are open in the server - click here to join! http://www.socalpug.com/join");
+        if (list.isEmpty()) { 
+          sendMsg(groupId, chatId, "NO LINE. Click here to join! http://www.socalpug.com/join");
         } else {
           sendMsg(groupId, chatId, list.getListString());
         }
@@ -223,7 +226,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
     }
   } else if (command === '!commands') {
     sendMsg(groupId, chatId, 'Commands: '+'!line Show the current line, !add Add yourself, '+
-    '!remove Remove yourself, !next Alert the next player that it\'s their turn,'+' !replace Put whoever was skipped back in front of the line');
+    '!remove Remove yourself, !next Alert the next player that it\'s their turn,'+' !replace Put whoever was skipped back in front of the line' + '!server Create a link to automatically join the server');
   } else if (command === '!need') { // show server stats; ping @all is impossible because bbcode is retarded
     var currentPlayers = await getCurrentPlayers();
     sendMsg(groupId, chatId, currentPlayers + ' players in the server! Join up! 66.165.238.178:27018');
@@ -247,7 +250,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
   } else if (command === '!help') {
     sendMsg(groupId, chatId, "https://github.com/socal-pug/chatbot/blob/main/README.md");
   } else if (command === '!server') {
-    sendMsg(groupId, chatId, 'Click here to join the server: http://www.socalpug.com/join');
+  //  sendMsg(groupId, chatId, 'Click here to join the server: http://www.socalpug.com/join');
   }
   setTimeout(() => {
     client.chat.deleteChatMessages(groupId, chatId, [{ server_timestamp: serverTimestamp, ordinal: ordinal }]); 
