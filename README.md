@@ -5,5 +5,5 @@ Latest changes:
 - !skip now completely ends the current !next process to prevent unnecessary messages & allow for faster line management
 
 TODO:
-- Fix !need to properly ping @all
+- Attempt to detect player in server even if they are on invisible / offline mode
 - More admin commands (rearrange the line, add anyone to any spot in the line, remove anyone from any spot in the line)
