@@ -81,7 +81,7 @@ client.chat.on('chatMessage', function(msgObj) {
      //   sendMsg(groupId, chatId, "Stop spamming commands, what's wrong with you?");
       } else {
         if (lineCommand || adminCommand) {
-          if (chatId == 50975794) { // SERVER LINE channel //if (chatId == 50975794) { 
+          if (chatId) { // SERVER LINE channel //if (chatId == 50975794) { 
               if (lineCommand) {
                   output(steamidObj, groupId, chatId, lineCommand, serverTimestamp, ordinal);
               } else if (adminCommand) {
@@ -102,7 +102,7 @@ client.chat.on('chatMessage', function(msgObj) {
       } else if (globalCommand) {
          output(steamidObj, groupId, chatId, globalCommand, serverTimestamp, ordinal);
       } else if (message.length > 1 && message.charAt(0) == "!") {
-        sendMsg(groupId, chatId, "Unknown command: "+message+"\nType !commands to see options.");
+        sendMsg(groupId, chatId, "Unknown command: "+message+"\Use !commands or !help to see options.");
       } else if (message.includes("<") || message.includes(">")) {
         sendMsg(groupId, chatId, "This bot can be used to track the line.\n"+
         "Type !add in the SERVER LINE channel to be added to the line.");
@@ -273,40 +273,42 @@ async function getPlayerNameList() {
   const response = await fetch('http://127.0.0.1:5000/playersList/');
   const body = await response.text();
   if (body) {
-     const arr = body.split('MYSECRETDIVIDER');
-     return body;
+     const arr = body.replace(/["\n]+/g, '').split('MYSECRETDIVIDER');
+     return arr;
   }
   return body;
 }
 
-// this only works if player is not set to Invisible on steam chat
+
 async function isInServer(player) {
     const playerName = await getNickName(player);
-    console.log(playerName);
     const response = await fetch('https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key='+config.steamDevKey+'&steamids='+player);
     const body = await response.json();
-    if (body) {
+    if (body) {  
         const currentIp = body.response.players[0]['gameserverip'];
-        if (currentIp === '66.165.238.178:27018') {
+        console.log('current ip is '+currentIp);
+        if (currentIp) {
+          if (currentIp === '66.165.238.178:27018') {
             return true;
-        } else {
-     //       var playerNames = await getPlayerNameList();
-      //      for (let i = 0; i < playerNames.length; i++) {
-       //       let name = playerNames[i].toLowerCase();
-        //      console.log(name);
-         //     if (name.includes(playerName) || playerName.includes(name)) {
-          //      console.log('caught him invis');
-           //     return true;
-            //  
-            
+          } else {      
+            return false;
+          }
+        } else { // invisible or offline on friends - search by name
+          var playerNamesList = await getPlayerNameList();
+            for (let i = 0; i < playerNamesList.length; i++) {
+              let name = playerNamesList[i].toLowerCase();
+              if (name == '') {
+                continue;
+              }
+              if (name.includes(playerName) || playerName.includes(name)) {
+                return true;
+              }
+            }
             return false;
         }
     }
-    // might have to just do contains(name) || contains(name) as a fallback
-    // if player is on invisible mode, can get a full list of players and see if they're in there
-    return body;
-
-}
+    return false;
+  }
 
 
 class Queue {
