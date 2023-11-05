@@ -164,9 +164,9 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
       } 
   } else if (command === '!remove') {
     if (list.dequeue(sender)) {
-    //    setTimeout(() => {
-    //        client.chat.sendChatMessage(groupId, chatId, list.getListString());
-    //    }, 600);
+        setTimeout(() => {
+            client.chat.sendChatMessage(groupId, chatId, list.getListString());
+        }, 600);
     } else {
         setTimeout(() => {
             client.chat.sendChatMessage(groupId, chatId, 'You are not in line, type !add to join');
@@ -244,8 +244,8 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
     }
   } else if (command === '!website') {
     sendMsg(groupId, chatId, 'http://www.socalpug.com/underconstruction');
-  } else if (command === '!updates') {
-    sendMsg(groupId, chatId, "10/28/23 changes & fixes: Reduced the number of times the line is automatically displayed after certain commands to reduce clutter; Detect spam & prevent bot from crashing; !skip now completely ends the current !next process to prevent unnecessary messages & allow for faster line management");
+  } else if (command === '!help') {
+    sendMsg(groupId, chatId, "Check out the README at https://github.com/socal-pug/chatbot");
   }
   setTimeout(() => {
     client.chat.deleteChatMessages(groupId, chatId, [{ server_timestamp: serverTimestamp, ordinal: ordinal }]); 
