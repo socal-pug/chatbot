@@ -5,7 +5,7 @@ module.exports = {
     steamDevKey: process.env.STEAM_DEV_KEY,
     
     lineCommands: [`!line`, `!add`, `!remove`, `!next`, `!commands`, `!need`, `!skip`, `!replace`],
-    globalCommands: [`!help`, `!website`, '!demos'],
+    globalCommands: [`!help`, `!website`, '!demos', `!server`],
     adminCommands: [`!clearline`, `!front`, `!kick`, `!back`],
     admins: [`76561198066211934`, // me
     `76561198003180679`], // bzy

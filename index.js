@@ -81,7 +81,7 @@ client.chat.on('chatMessage', function(msgObj) {
      //   sendMsg(groupId, chatId, "Stop spamming commands, what's wrong with you?");
       } else {
         if (lineCommand || adminCommand) {
-          if (chatId == 50975794) { // SERVER LINE channel //if (chatId == 50975794) { 
+          if (chatId) { // SERVER LINE channel //if (chatId == 50975794) { 
               if (lineCommand) {
                   output(steamidObj, groupId, chatId, lineCommand, serverTimestamp, ordinal);
               } else if (adminCommand) {
@@ -99,14 +99,14 @@ client.chat.on('chatMessage', function(msgObj) {
           } else {
             sendMsg(groupId, chatId, "Use the SERVER LINE channel for line commands.");
           }
-      } else if (globalCommand) {
-         output(steamidObj, groupId, chatId, globalCommand, serverTimestamp, ordinal);
-      } else if (message.length > 1 && message.charAt(0) == "!") {
-        sendMsg(groupId, chatId, "Unknown command: "+message+"\Use !commands or !help to see options.");
-      } else if (message.includes("<") || message.includes(">")) {
-        sendMsg(groupId, chatId, "This bot can be used to track the line.\n"+
+        } else if (globalCommand) {
+          output(steamidObj, groupId, chatId, globalCommand, serverTimestamp, ordinal);
+        } else if (message.length > 1 && message.charAt(0) == "!") {
+          sendMsg(groupId, chatId, "Unknown command: "+message+"\Use !commands or !help to see options.");
+        } else if (message.includes("<") || message.includes(">")) {
+          sendMsg(groupId, chatId, "This bot can be used to track the line.\n"+
         "Type !add in the SERVER LINE channel to be added to the line.");
-      }
+        }
       }
     }
 
@@ -135,7 +135,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
     } else {
       var full = await isServerFull();
       if (full.startsWith('\"false\"') && list.isEmpty()) { 
-        sendMsg(groupId, chatId, "NO LINE and slots are open in the server - join up!");
+        sendMsg(groupId, chatId, "NO LINE and slots are open in the server - click here to join! http://www.socalpug.com/join");
       }
       else {
         if (list.enqueue(sender)) {
@@ -155,7 +155,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
       var full = await isServerFull();
       if (full.startsWith('\"false\"')) { // not full
         if (list.isEmpty()) {
-          sendMsg(groupId, chatId, "NO LINE and slots are open in the server - join up!");
+          sendMsg(groupId, chatId, "NO LINE and slots are open in the server - click here to join! http://www.socalpug.com/join");
         } else {
           sendMsg(groupId, chatId, list.getListString());
         }
@@ -185,7 +185,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
             var full = await isServerFull();
             var msg = '';
             if (full.startsWith('\"false\"')) { 
-                msg = 'Your slot is open - join the server! 60 second timer starts now';
+                msg = 'Your slot is open - join the server! http://www.socalpug.com/join 60 second timer starts now';
             } else {
                 msg = 'The server is still full.  Get on auto-join';
             }
@@ -246,6 +246,8 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
     sendMsg(groupId, chatId, 'http://www.socalpug.com/underconstruction');
   } else if (command === '!help') {
     sendMsg(groupId, chatId, "https://github.com/socal-pug/chatbot/blob/main/README.md");
+  } else if (command === '!server') {
+    sendMsg(groupId, chatId, 'Click here to join the server: http://www.socalpug.com/join');
   }
   setTimeout(() => {
     client.chat.deleteChatMessages(groupId, chatId, [{ server_timestamp: serverTimestamp, ordinal: ordinal }]); 
@@ -286,7 +288,6 @@ async function isInServer(player) {
     const body = await response.json();
     if (body) {  
         const currentIp = body.response.players[0]['gameserverip'];
-        console.log('current ip is '+currentIp);
         if (currentIp) {
           if (currentIp === '66.165.238.178:27018') {
             return true;

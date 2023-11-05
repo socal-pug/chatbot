@@ -8,6 +8,7 @@ Line commands:
 - **!next** Alert the next player that it's their turn to join - this will start a 70 second timer.  If they join the server, the bot will automatically remove them fron the front of the line  
 - **!skip** *Don't abuse this* - Remove whoever is in front of the line. This is only to be used on people who are AFK when it's their turn or they're already in the server
 - **!replace** This is an "undo" for !skip. Put whoever was last skipped back in front of the line
+- **!server** This will send a link to join the pug server using Steam browser protocol: http://www.socalpug.com/join Your browser will ask for permission to use Steam Client Bootstrapper.  If you allow it, cs will launch and join the server
   
     
 
