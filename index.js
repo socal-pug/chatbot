@@ -245,7 +245,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
   } else if (command === '!website') {
     sendMsg(groupId, chatId, 'http://www.socalpug.com/underconstruction');
   } else if (command === '!help') {
-    sendMsg(groupId, chatId, "Check out the README at https://github.com/socal-pug/chatbot");
+    sendMsg(groupId, chatId, "https://github.com/socal-pug/chatbot/blob/main/README.md");
   }
   setTimeout(() => {
     client.chat.deleteChatMessages(groupId, chatId, [{ server_timestamp: serverTimestamp, ordinal: ordinal }]); 
