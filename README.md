@@ -1,6 +1,6 @@
-# socal pug chatbot
+# socal pug LINE bot
 This Steam group chat bot is used to track the line of players for the Socal Pug 66.165.238.178:27018  
-  
+
 Line commands:
 - **!line** Show the current line
 - **!add** Add yourself to the back of the line
