@@ -210,7 +210,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
                   alreadyConnected = await isInServer((nameToSteamIdObj.get(next)).getSteamID64()); 
                   var stillInLine = list.isInLine(next);
                   if (!alreadyConnected && stillInLine) {
-                    sendMsg(groupId, chatId, next + ' did not join the server.\nType !skip to remove them from the front of the line.');
+                    sendMsg(groupId, chatId, next + ' did not join the server.\nType !skip if he should be removed from the front of the line.');
                   }
                   clearInterval(intervalID);
                   playerCalledNext.set(next, false);
@@ -269,8 +269,20 @@ async function getCurrentPlayers() {
      return body;
 }
 
+async function getPlayerNameList() {
+  const response = await fetch('http://127.0.0.1:5000/playersList/');
+  const body = await response.text();
+  if (body) {
+     const arr = body.split('MYSECRETDIVIDER');
+     return body;
+  }
+  return body;
+}
+
 // this only works if player is not set to Invisible on steam chat
 async function isInServer(player) {
+    const playerName = await getNickName(player);
+    console.log(playerName);
     const response = await fetch('https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key='+config.steamDevKey+'&steamids='+player);
     const body = await response.json();
     if (body) {
@@ -278,9 +290,20 @@ async function isInServer(player) {
         if (currentIp === '66.165.238.178:27018') {
             return true;
         } else {
+     //       var playerNames = await getPlayerNameList();
+      //      for (let i = 0; i < playerNames.length; i++) {
+       //       let name = playerNames[i].toLowerCase();
+        //      console.log(name);
+         //     if (name.includes(playerName) || playerName.includes(name)) {
+          //      console.log('caught him invis');
+           //     return true;
+            //  
+            
             return false;
         }
     }
+    // might have to just do contains(name) || contains(name) as a fallback
+    // if player is on invisible mode, can get a full list of players and see if they're in there
     return body;
 
 }
