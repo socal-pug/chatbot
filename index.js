@@ -15,6 +15,19 @@ var playerCalledNext = new Map();
 
 var executing = false;
 
+var globalGroupId;
+
+
+// every 2 mins check for top killa
+var killerInterval = setInterval(async () => {
+  var killer = await getLastTopFragger(); 
+  if (killer && killer.length > 5 && killer != list.getLastKillerStr()) {
+    sendMsg(globalGroupId, 50975794, killer.replace(/["]+/g, ''));
+    list.setLastKillerStr(killer);
+  }
+
+}, 145000);
+
 async function getNickName(id) {
   const nick = await steam.getUserSummary(id).then(summary => {
     return summary.nickname;
@@ -67,6 +80,7 @@ client.chat.on('chatMessage', function(msgObj) {
       chatId = msgObj.chat_id,
       serverTimestamp = msgObj.server_timestamp,
       ordinal = msgObj.ordinal;
+  globalGroupId = groupId;
   let lineCommand = includes(message, config.lineCommands);
   let adminCommand = includes(message, config.adminCommands);
   let globalCommand = includes(message, config.globalCommands);
@@ -102,7 +116,7 @@ client.chat.on('chatMessage', function(msgObj) {
         } else if (globalCommand) {
           output(steamidObj, groupId, chatId, globalCommand, serverTimestamp, ordinal);
         } else if (message.length > 1 && message.charAt(0) == "!") {
-          sendMsg(groupId, chatId, "Unknown command: "+message+"\Use !commands or !help to see options.");
+          sendMsg(groupId, chatId, "Unknown command: "+message+". Use !commands or !help to see options.");
         } else if (message.includes("<") || message.includes(">")) {
           sendMsg(groupId, chatId, "This bot can be used to track the line.\n"+
         "Type !add in the SERVER LINE channel to be added to the line.");
@@ -114,6 +128,8 @@ client.chat.on('chatMessage', function(msgObj) {
 
 
 function sendMsg(groupId, chatId, msgToSend) {
+    if (msgToSend.length < 3)
+      return;
     if (!executing) {
       executing = true;
       setTimeout(() => {
@@ -251,7 +267,9 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
     sendMsg(groupId, chatId, "https://github.com/socal-pug/chatbot/blob/main/README.md");
   } else if (command === '!killer') {
     var killer = await getLastTopFragger(); 
-    sendMsg(groupId, chatId, killer.replace(/["]+/g, ''));
+    if (killer && killer.length > 5) {
+      sendMsg(groupId, chatId, killer.replace(/["]+/g, ''));
+    }
   }
   setTimeout(() => {
     client.chat.deleteChatMessages(groupId, chatId, [{ server_timestamp: serverTimestamp, ordinal: ordinal }]); 
@@ -326,6 +344,7 @@ class Queue {
   constructor() {
     this.list = [];
     this.lastSkipped = '';
+    this.lastKillerStr = '';
   }
 
   enqueue = (sender) => {
@@ -357,6 +376,14 @@ class Queue {
       this.list = newList;
       return true;
     }
+  }
+
+  setLastKillerStr(killer) {
+    this.lastKillerStr = killer;
+  }
+
+  getLastKillerStr() {
+    return this.lastKillerStr;
   }
 
   setLastSkipped(player) {
