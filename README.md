@@ -13,5 +13,5 @@ Line commands:
     
 
 TODO:
-- Attempt to detect player in server even if they are on invisible / offline mode
+- !add should check the playerCalledNext map to see if anyone is about to join.  If not, don't allow adding to line if server slots are open, just prompt to join instead
 - More admin commands (rearrange the line, add anyone to any spot in the line, remove anyone from any spot in the line)
