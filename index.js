@@ -249,8 +249,9 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
     sendMsg(groupId, chatId, 'http://www.socalpug.com/underconstruction');
   } else if (command === '!help') {
     sendMsg(groupId, chatId, "https://github.com/socal-pug/chatbot/blob/main/README.md");
-  } else if (command === '!server') {
-  //  sendMsg(groupId, chatId, 'Click here to join the server: http://www.socalpug.com/join');
+  } else if (command === '!killer') {
+    var killer = await getLastTopFragger(); 
+    sendMsg(groupId, chatId, killer.replace(/["]+/g, ''));
   }
   setTimeout(() => {
     client.chat.deleteChatMessages(groupId, chatId, [{ server_timestamp: serverTimestamp, ordinal: ordinal }]); 
@@ -284,6 +285,12 @@ async function getPlayerNameList() {
   return body;
 }
 
+
+async function getLastTopFragger() {
+  const response = await fetch('http://127.0.0.1:5000/latestTopFragger/');
+  const body = await response.text();
+  return body;
+}
 
 async function isInServer(player) {
     const playerName = await getNickName(player);

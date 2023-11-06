@@ -4,7 +4,7 @@ module.exports = {
     sharedSecret: process.env.SHARED_SECRET,
     steamDevKey: process.env.STEAM_DEV_KEY,
     
-    lineCommands: [`!line`, `!add`, `!remove`, `!next`, `!commands`, `!need`, `!skip`, `!replace`],
+    lineCommands: [`!line`, `!add`, `!remove`, `!next`, `!commands`, `!need`, `!skip`, `!replace`, `!killer`],
     globalCommands: [`!help`, `!website`, '!demos', `!server`],
     adminCommands: [`!clearline`, `!front`, `!kick`, `!back`],
     admins: [`76561198066211934`, // me
