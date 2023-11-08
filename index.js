@@ -21,7 +21,7 @@ var globalGroupId;
 // every 2 mins check for top killa
 var killerInterval = setInterval(async () => {
   var killer = await getLastTopFragger(); 
-  if (killer && killer.length > 5 && killer != list.getLastKillerStr()) {
+  if (killer && killer.length > 15 && killer != list.getLastKillerStr()) {
     sendMsg(globalGroupId, 50975794, killer.replace(/["]+/g, ''));
     list.setLastKillerStr(killer);
   }
@@ -128,7 +128,7 @@ client.chat.on('chatMessage', function(msgObj) {
 
 
 function sendMsg(groupId, chatId, msgToSend) {
-    if (msgToSend.length < 3)
+    if (msgToSend.length < 1)
       return;
     if (!executing) {
       executing = true;
@@ -242,7 +242,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
     }
   } else if (command === '!commands') {
     sendMsg(groupId, chatId, 'Commands: '+'!line Show the current line, !add Add yourself, '+
-    '!remove Remove yourself, !next Alert the next player that it\'s their turn,'+' !replace Put whoever was skipped back in front of the line' + '!server Create a link to automatically join the server');
+    '!remove Remove yourself, !next Alert the next player that it\'s their turn,'+' !replace Put whoever was skipped back in front of the line, ' + '!server Create a link to automatically join the server, !topkills Show who got top kills last pug');
   } else if (command === '!need') { // show server stats; ping @all is impossible because bbcode is retarded
     var currentPlayers = await getCurrentPlayers();
     sendMsg(groupId, chatId, currentPlayers + ' players in the server! Join up! 66.165.238.178:27018');
@@ -265,10 +265,12 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
     sendMsg(groupId, chatId, 'http://www.socalpug.com/underconstruction');
   } else if (command === '!help') {
     sendMsg(groupId, chatId, "https://github.com/socal-pug/chatbot/blob/main/README.md");
-  } else if (command === '!killer') {
-    var killer = await getLastTopFragger(); 
-    if (killer && killer.length > 5) {
+  } else if (command === '!topkills') {
+    var killer = list.getLastKillerStr();
+    if (killer && killer.length > 15) {
       sendMsg(groupId, chatId, killer.replace(/["]+/g, ''));
+    } else {
+      sendMsg(groupId, chatId, "No recent pug found");
     }
   }
   setTimeout(() => {
