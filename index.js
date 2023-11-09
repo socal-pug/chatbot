@@ -22,6 +22,7 @@ var globalGroupId;
 var killerInterval = setInterval(async () => {
   var killer = await getLastTopFragger(); 
   if (killer && killer.length > 15 && killer != list.getLastKillerStr()) {
+    if (killer != '"No recent pug found"' && killer != '"Still processing the latest demo"')
     sendMsg(globalGroupId, 50975794, killer.replace(/["]+/g, ''));
     list.setLastKillerStr(killer);
   }
@@ -269,9 +270,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
     var killer = list.getLastKillerStr();
     if (killer && killer.length > 15) {
       sendMsg(groupId, chatId, killer.replace(/["]+/g, ''));
-    } else {
-      sendMsg(groupId, chatId, "No recent pug found");
-    }
+    } 
   }
   setTimeout(() => {
     client.chat.deleteChatMessages(groupId, chatId, [{ server_timestamp: serverTimestamp, ordinal: ordinal }]); 
