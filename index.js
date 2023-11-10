@@ -23,7 +23,9 @@ var killerInterval = setInterval(async () => {
   var killer = await getLastTopFragger(); 
   if (killer && killer.length > 15 && killer != list.getLastKillerStr()) {
     if (!killer.includes('No recent pug found') && !killer.includes('Still processing the latest demo')) {
-      sendMsg(globalGroupId, 50975794, killer.replace(/["]+/g, ''));
+      let removedQuotes = killer.replace(/["]+/g, '');
+      let toDecode = removedQuotes.replace(/\\x/g, '%');
+      sendMsg(globalGroupId, 50975794, decodeURIComponent(toDecode));
       list.setLastKillerStr(killer);
     }
   }
@@ -270,7 +272,9 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
   } else if (command === '!topkills') {
     var killer = list.getLastKillerStr();
     if (killer && killer.length > 15) {
-      sendMsg(groupId, chatId, killer.replace(/["]+/g, ''));
+      let removedQuotes = killer.replace(/["]+/g, '');
+      let toDecode = removedQuotes.replace(/\\x/g, '%');
+      sendMsg(groupId, chatId, decodeURIComponent(toDecode));
     } 
   }
   setTimeout(() => {
