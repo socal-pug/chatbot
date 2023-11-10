@@ -24,7 +24,7 @@ var killerInterval = setInterval(async () => {
   if (killer && killer.length > 15 && killer != list.getLastKillerStr()) {
     if (!killer.includes('No recent pug found') && !killer.includes('Still processing the latest demo')) {
       let removedQuotes = killer.replace(/["]+/g, '');
-      let toDecode = removedQuotes.replace(/\\x/g, '%');
+      let toDecode = removedQuotes.replace(/\\\\x/g, '%');
       sendMsg(globalGroupId, 50975794, decodeURIComponent(toDecode));
       list.setLastKillerStr(killer);
     }
@@ -270,10 +270,14 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
   } else if (command === '!help') {
     sendMsg(groupId, chatId, "https://github.com/socal-pug/chatbot/blob/main/README.md");
   } else if (command === '!topkills') {
-    var killer = list.getLastKillerStr();
+    var lastKiller = list.getLastKillerStr();
+    var killer = await getLastTopFragger(); 
+    if (!killer) {
+      killer = lastKiller;
+    }
     if (killer && killer.length > 15) {
       let removedQuotes = killer.replace(/["]+/g, '');
-      let toDecode = removedQuotes.replace(/\\x/g, '%');
+      let toDecode = removedQuotes.replace(/\\\\x/g, '%');
       sendMsg(groupId, chatId, decodeURIComponent(toDecode));
     } 
   }
