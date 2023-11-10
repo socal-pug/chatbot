@@ -22,9 +22,10 @@ var globalGroupId;
 var killerInterval = setInterval(async () => {
   var killer = await getLastTopFragger(); 
   if (killer && killer.length > 15 && killer != list.getLastKillerStr()) {
-    if (killer != '"No recent pug found"' && killer != '"Still processing the latest demo"')
-    sendMsg(globalGroupId, 50975794, killer.replace(/["]+/g, ''));
-    list.setLastKillerStr(killer);
+    if (!killer.includes('No recent pug found') && !killer.includes('Still processing the latest demo')) {
+      sendMsg(globalGroupId, 50975794, killer.replace(/["]+/g, ''));
+      list.setLastKillerStr(killer);
+    }
   }
 
 }, 145000);
@@ -244,9 +245,9 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
   } else if (command === '!commands') {
     sendMsg(groupId, chatId, 'Commands: '+'!line Show the current line, !add Add yourself, '+
     '!remove Remove yourself, !next Alert the next player that it\'s their turn,'+' !replace Put whoever was skipped back in front of the line, ' + '!server Create a link to automatically join the server, !topkills Show who got top kills last pug');
-  } else if (command === '!need') { // show server stats; ping @all is impossible because bbcode is retarded
+  } else if (command === '!need') { 
     var currentPlayers = await getCurrentPlayers();
-    sendMsg(groupId, chatId, currentPlayers + ' players in the server! Join up! 66.165.238.178:27018');
+    sendMsg(groupId, chatId, currentPlayers + ' players in the server! Join up! http://www.socalpug.com/join');
   } else if (command === '!skip') {
     const next = list.peek();
     if (next) { 
