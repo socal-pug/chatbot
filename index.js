@@ -17,7 +17,6 @@ var executing = false;
 
 var globalGroupId;
 
-
 // every 2 mins check for top killa
 var killerInterval = setInterval(async () => {
   var killer = await getLastTopFragger(); 
@@ -125,6 +124,12 @@ client.chat.on('chatMessage', function(msgObj) {
           sendMsg(groupId, chatId, "This bot can be used to track the line.\n"+
         "Type !add in the SERVER LINE channel to be added to the line.");
         }
+
+        process.on('uncaughtException', function (err) {
+          console.log('UNCAUGHT EXCEPTION - keeping process alive:', err.message); // err.message is "foobar"
+          console.log('Re-logged on');
+          sendMsg(groupId, chatId, "Command failed ("+err.message+"); try again in a few seconds");
+        });
       }
     }
 
@@ -142,7 +147,7 @@ function sendMsg(groupId, chatId, msgToSend) {
       }, 1400);
     }  else {
       console.log('skipping '+msgToSend);
-      console.log('already executing');
+      console.log('already executing'); 
     }
 }
 
@@ -201,7 +206,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
         var alreadyConnected = await isInServer((nameToSteamIdObj.get(next)).getSteamID64()); 
         if (alreadyConnected) {
             list.dequeue(next);  
-            sendMsg(groupId, chatId, next + " is already in the server.");
+            sendMsg(groupId, chatId, next + " is already in the server and has been removed from the front of the line.\n"+list.getListString());
         } else {
           if (playerCalledNext.get(next) == false) {
             playerCalledNext.set(next, true);
@@ -222,7 +227,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
                     list.dequeue(next);
                     playerCalledNext.set(next, false);
                     clearInterval(intervalID);
-                    sendMsg(groupId, chatId, next + ' has joined the server.');
+                    sendMsg(groupId, chatId, next + ' joined the server and has been removed from the front of the line.\n'+list.getListString());
                   }
                 }
               }, 10000);
@@ -234,6 +239,9 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
                   var stillInLine = list.isInLine(next);
                   if (!alreadyConnected && stillInLine) {
                     sendMsg(groupId, chatId, next + ' did not join the server.\nType !skip if he should be removed from the front of the line.');
+                  } else if (alreadyConnected && stillInLine) {
+                    list.dequeue(next);
+                    sendMsg(groupId, chatId, next + ' joined the server and has been removed from the front of the line.\n'+list.getListString());
                   }
                   clearInterval(intervalID);
                   playerCalledNext.set(next, false);
@@ -340,6 +348,7 @@ async function isInServer(player) {
                 continue;
               }
               if (name.includes(playerName) || playerName.includes(name)) {
+                console.log('matched '+name+' and '+playerName+' for is in server check');
                 return true;
               }
             }
