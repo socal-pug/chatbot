@@ -16,6 +16,7 @@ var playerCalledNext = new Map();
 var executing = false;
 
 var globalGroupId;
+var globalChatId;
 
 // every 2 mins check for top killa
 var killerInterval = setInterval(async () => {
@@ -55,9 +56,16 @@ client.on('loggedOn', () => {
 function includes(message, arr) {
   if (!message)
     return false;
+  cmds = message.split(" ");
+  // debugging:
+  console.log('cmds:');
+  for (let i = 0; i < cmds.length; i++) {
+    console.log(cmds[i]);
+  }
+  //
   for (let i = 0; i < arr.length; i++) {
-    if (message.toLowerCase() == arr[i]) {
-      return message;
+    if (cmds[0].toLowerCase() == arr[i]) {
+      return cmds;
     }
   }
   return false;
@@ -72,45 +80,75 @@ function isAdmin(id, admins) {
     return false;
 }
 
+
+process.on('uncaughtException', function (err) {
+  console.log('UNCAUGHT EXCEPTION - staying alive - '+ err.message); 
+  process.nextTick(() => {sendMsg(globalGroupId, globalChatId, "Execution failed, try again")});
+}); 
+
 client.chat.on('chatMessage', function(msgObj) {
   let steamidObj = msgObj.steamid_sender,
       message = msgObj.message,
       accountid = msgObj.accountid,
       mentions = msgObj.mentions;
-
-
+  
+  //    console.log('message from '+steamidObj.getSteamID64());
   let groupId = msgObj.chat_group_id,
       chatId = msgObj.chat_id,
       serverTimestamp = msgObj.server_timestamp,
       ordinal = msgObj.ordinal;
   globalGroupId = groupId;
+  globalChatId = chatId;
   let lineCommand = includes(message, config.lineCommands);
   let adminCommand = includes(message, config.adminCommands);
   let globalCommand = includes(message, config.globalCommands);
   
     if (message) {
-    //  if (mentions) {
-    //    if (mentions.mention_steamids.length > 0) {
-    //      const taggedId = mentions.mention_steamids[0]['accountid'];
-    //    }
-    //  }
+//      if (mentions) {
+ //       if (mentions.mention_steamids.length > 0) {
+ //         const taggedId = mentions.mention_steamids[0]['accountid'];
+  //      }
+  //    }
       if (ordinal > 0) {
      //   sendMsg(groupId, chatId, "Stop spamming commands, what's wrong with you?");
       } else {
         if (lineCommand || adminCommand) {
           if (chatId == 50975794) { // SERVER LINE channel //if (chatId == 50975794) { 
-              if (lineCommand) {
+            console.log(lineCommand.length);
+              if (lineCommand && lineCommand.length == 1) {
                   output(steamidObj, groupId, chatId, lineCommand, serverTimestamp, ordinal);
               } else if (adminCommand) {
                   const id = steamidObj.getSteamID64();
                   if (isAdmin(id, config.admins)) {
-                      if (adminCommand.toLowerCase() === '!clearline') { 
+                      if (adminCommand[0].toLowerCase() === '!clearline') { 
                           list.reset();
                           sendMsg(groupId, chatId, "Line cleared by an admin: "+list.getListString());      
+                      } else if (adminCommand[0].toLowerCase() === '!move') {
+                          if (!list.isInLine(adminCommand[1])) {
+                            sendMsg(groupId, chatId, "Player is not in line");
+                          } else if (isNaN(adminCommand[2])) {
+                            sendMsg(groupId, chatId, adminCommand[2] + " is not a number. Specify position in line to move the player to (ex: Move someone to second in line would be !move playerName 2)");
+                          } else if (adminCommand[2] < 1) {
+                            sendMsg(groupId, chatId, adminCommand[2] + "Specify a positive number for the position in line to move the player to (ex: Move someone to second in line would be !move playerName 2)");
+                          }else {
+                            list.move(adminCommand[1], adminCommand[2]);
+                            sendMsg(groupId, chatId, list.getListString());
+                          }
+                          
+                      } else if (adminCommand[0].toLowerCase() === '!remove') {
+                          if (list.dequeue(adminCommand[1])) {
+                            setTimeout(() => {
+                                client.chat.sendChatMessage(groupId, chatId, adminCommand[1] + ' removed by an admin.\n'+ list.getListString());
+                            }, 600);
+                          } else {
+                            setTimeout(() => {
+                                client.chat.sendChatMessage(groupId, chatId, 'Player is not in line');
+                            }, 600);
+                          }
                       }
-                      setTimeout(() => {
-                          client.chat.deleteChatMessages(groupId, chatId, [{ server_timestamp: serverTimestamp, ordinal: ordinal }]); 
-                      }, 500);
+                   //   setTimeout(() => {
+                    //      client.chat.deleteChatMessages(groupId, chatId, [{ server_timestamp: serverTimestamp, ordinal: ordinal }]); 
+                    //  }, 500);
                   }
               }
           } else {
@@ -125,11 +163,6 @@ client.chat.on('chatMessage', function(msgObj) {
         "Type !add in the SERVER LINE channel to be added to the line.");
         }
 
-        process.on('uncaughtException', function (err) {
-          console.log('UNCAUGHT EXCEPTION - keeping process alive:', err.message); // err.message is "foobar"
-          console.log('Re-logged on');
-          sendMsg(groupId, chatId, "Command failed ("+err.message+"); try again in a few seconds");
-        });
       }
     }
 
@@ -152,9 +185,9 @@ function sendMsg(groupId, chatId, msgToSend) {
 }
 
 
-async function output(steamidObj, groupId, chatId, command, serverTimestamp, ordinal) {
+async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordinal) {
   const sender = await getNickName(steamidObj.getSteamID64());
-  command = command.toLowerCase();
+  var command = cmds[0].toLowerCase();
   if (command === '!add') {
     var alreadyConnected = await isInServer(steamidObj.getSteamID64()); 
     if (alreadyConnected) {
@@ -162,8 +195,8 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
       sendMsg(groupId, chatId, 'You are already in the game server.');
     } else {
       var full = await isServerFull();
-      if (full.startsWith('\"false\"') && list.isEmpty()) { 
-        sendMsg(groupId, chatId, "NO LINE and slots are open in the server - click here to join! http://www.socalpug.com/join");
+      if (full.startsWith('\"false\"') && list.isEmpty()) {
+        sendMsg(groupId, chatId, "NO LINE and slots are open in the server: 66.165.238.178:27018 - http://www.socalpug.com/join");
       }
       else {
         if (list.enqueue(sender)) {
@@ -183,7 +216,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
       var full = await isServerFull();
       if (full.startsWith('\"false\"')) { // not full
         if (list.isEmpty()) { 
-          sendMsg(groupId, chatId, "NO LINE. Click here to join! http://www.socalpug.com/join");
+          sendMsg(groupId, chatId, "NO LINE and slots are open in the server: 66.165.238.178:27018 - www.socalpug.com/join"); 
         } else {
           sendMsg(groupId, chatId, list.getListString());
         }
@@ -238,7 +271,7 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
                   alreadyConnected = await isInServer((nameToSteamIdObj.get(next)).getSteamID64()); 
                   var stillInLine = list.isInLine(next);
                   if (!alreadyConnected && stillInLine) {
-                    sendMsg(groupId, chatId, next + ' did not join the server.\nType !skip if he should be removed from the front of the line.');
+                    sendMsg(groupId, chatId, next + ' did not join the server or is set to invisible/offline.\nType !skip if he should be removed from the front of the line.');
                   } else if (alreadyConnected && stillInLine) {
                     list.dequeue(next);
                     sendMsg(groupId, chatId, next + ' joined the server and has been removed from the front of the line.\n'+list.getListString());
@@ -289,16 +322,16 @@ async function output(steamidObj, groupId, chatId, command, serverTimestamp, ord
       sendMsg(groupId, chatId, decodeURIComponent(toDecode));
     } 
   }
-  setTimeout(() => {
-    client.chat.deleteChatMessages(groupId, chatId, [{ server_timestamp: serverTimestamp, ordinal: ordinal }]); 
-  }, 6000);
+ // setTimeout(() => {
+ //   client.chat.deleteChatMessages(groupId, chatId, [{ server_timestamp: serverTimestamp, ordinal: ordinal }]); 
+ // }, 6000);
 }
 
 
 async function isServerFull() {
-    const response = await fetch('http://127.0.0.1:5000/isServerFull/');
-    const body = await response.text();
-    return body;
+  const response = await fetch('http://127.0.0.1:5000/isServerFull/');
+  const body = await response.text();
+  return body;
 }
 
 async function getCurrentPlayers() {
@@ -366,6 +399,8 @@ class Queue {
     this.lastKillerStr = '';
   }
 
+
+// this needs to check steam id rather than name to prevent duplicate issues
   enqueue = (sender) => {
     const index = this.list.indexOf(sender);
     if (index > -1) { 
@@ -429,10 +464,12 @@ class Queue {
   isEmpty = () => this.list.length === 0;
 
   getListString() {
-    if (this.isEmpty()) { // CHECK IF SERVER HAS SLOTS AVAILABLE!  IF SO THEN SAY JOIN THE SERVER!
+    if (this.isEmpty()) { 
         return "LINE IS EMPTY, type !add to join";
+    } else if (this.list.length == 1) {
+        return this.list[0] + " > ";
     } else {
-        return this.list.join(" > ");
+      return this.list.join(" > ");
     }
   }
 
@@ -442,6 +479,23 @@ class Queue {
 
   reset() {
     this.list = [];
+  }
+
+  move(player, slot) {
+    var old_index = this.list.findIndex((element) => element == player);
+    this.list.splice(slot-1, 0, this.list.splice(old_index, 1)[0]);
+  }
+
+  insert(player) { // add to end of line
+
+  }
+
+  insert(player, slot) { // add to slot position
+    
+  }
+
+  remove(player) {
+
   }
 
 }
