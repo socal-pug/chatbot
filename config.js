@@ -13,9 +13,9 @@ module.exports = {
     `uniquebadass`, // blade
     `76561198011059931`, // jammin 
     `76561198172314310`, // joker
-    `efezeta`, // fz
-    `wowalex`, // al
-    `amorfy`,
+    `efezeta`, // fz these custon names don't work
+    `wowalex`, // al these custon names don't work
+    `76561197990284066`, // amorfy
     `bong50z`, // these custon names don't work
     `697917`], // j
     publicUsername: `LINE`,

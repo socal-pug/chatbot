@@ -58,10 +58,10 @@ function includes(message, arr) {
     return false;
   cmds = message.split(" ");
   // debugging:
-  console.log('cmds:');
-  for (let i = 0; i < cmds.length; i++) {
-    console.log(cmds[i]);
-  }
+  //console.log('cmds:');
+  //for (let i = 0; i < cmds.length; i++) {
+  //  console.log(cmds[i]);
+ // }
   //
   for (let i = 0; i < arr.length; i++) {
     if (cmds[0].toLowerCase() == arr[i]) {
@@ -114,7 +114,6 @@ client.chat.on('chatMessage', function(msgObj) {
       } else {
         if (lineCommand || adminCommand) {
           if (chatId == 50975794) { // SERVER LINE channel //if (chatId == 50975794) { 
-            console.log(lineCommand.length);
               if (lineCommand && lineCommand.length == 1) {
                   output(steamidObj, groupId, chatId, lineCommand, serverTimestamp, ordinal);
               } else if (adminCommand) {
@@ -158,11 +157,7 @@ client.chat.on('chatMessage', function(msgObj) {
           output(steamidObj, groupId, chatId, globalCommand, serverTimestamp, ordinal);
         } else if (message.length > 1 && message.charAt(0) == "!") {
           sendMsg(groupId, chatId, "Unknown command: "+message+". Use !commands or !help to see options.");
-        } else if (message.includes("<") || message.includes(">")) {
-          sendMsg(groupId, chatId, "This bot can be used to track the line.\n"+
-        "Type !add in the SERVER LINE channel to be added to the line.");
         }
-
       }
     }
 
