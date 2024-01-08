@@ -16,7 +16,7 @@ module.exports = {
     `efezeta`, // fz these custon names don't work
     `wowalex`, // al these custon names don't work
     `76561197990284066`, // amorfy
-    `bong50z`, // these custon names don't work
+    `76561197989353212`, // bong
     `697917`], // j
     publicUsername: `LINE`,
     inGameName: `LINE`

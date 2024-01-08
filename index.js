@@ -6,8 +6,48 @@ const SteamAPI = require('steamapi');
 const steam = new SteamAPI(config.steamDevKey);
 const SteamTotp = require('steam-totp');
 const { AdminLogListenRequest } = require('steam-user/enums/EMsg');
+const dgram = require('dgram');
+const server = dgram.createSocket('udp4');
 
 const client = new SteamUser();
+
+server.on('error', (err) => {
+  console.log(`server error:\n${err.stack}`);
+  server.close();
+});
+
+server.on('message', (msg, rinfo) => {
+  if (msg.includes('say "!line"')) {
+    console.log('someone said line');
+    if (list.isEmpty()) {
+      msgToServer("Line is empty - use !need to request players from the chat");
+    } else {
+      msgToServer(list.getListString());
+    }
+  } else if (msg.includes('say "!next"')) {
+    console.log('said next');
+    if (list.isEmpty()) {
+      msgToServer("Line is empty - use !need to request players from the chat");
+    } else {
+      msgToServer("Now calling the next player in line");
+      customOutput(14783195, 50975794, "!next", null, null);
+    }
+  } else if (msg.includes('say "!need"')) {
+    console.log('said need');
+    msgToServer("Requesting players from the group chat");
+    customOutput(14783195, 50975794, "!need", null, null);
+  } else if (msg.includes('say "!topkills"')) {
+    customOutput(14783195, 50975794, "!topkills", null, null);
+  }
+});
+
+server.on('listening', () => {
+  const address = server.address();
+  console.log(`server listening ${address.address}:${address.port}`);
+});
+
+server.bind(27500);
+
 
 const nameToSteamIdObj = new Map();
 
@@ -25,7 +65,7 @@ var killerInterval = setInterval(async () => {
     if (!killer.includes('No recent pug found') && !killer.includes('Still processing the latest demo')) {
       let removedQuotes = killer.replace(/["]+/g, '');
       let toDecode = removedQuotes.replace(/\\\\x/g, '%');
-      sendMsg(globalGroupId, 50975794, decodeURIComponent(toDecode));
+      sendMsg(14783195, 50975794, decodeURIComponent(toDecode));
       list.setLastKillerStr(killer);
     }
   }
@@ -83,7 +123,7 @@ function isAdmin(id, admins) {
 
 process.on('uncaughtException', function (err) {
   console.log('UNCAUGHT EXCEPTION - staying alive - '+ err.message); 
-  process.nextTick(() => {sendMsg(globalGroupId, globalChatId, "Execution failed, try again")});
+  process.nextTick(() => {sendMsg(14783195, 50975794, "Execution failed, try again")});
 }); 
 
 client.chat.on('chatMessage', function(msgObj) {
@@ -179,6 +219,77 @@ function sendMsg(groupId, chatId, msgToSend) {
     }
 }
 
+async function customOutput(groupId, chatId, command, serverTimestamp, ordinal) {
+  if (command === '!next') { 
+    const next = list.peek();
+    if (next) {
+        var alreadyConnected = await isInServer((nameToSteamIdObj.get(next)).getSteamID64()); 
+        if (alreadyConnected) {
+            list.dequeue(next);  
+            msgToServer(next + " is already in the server and has been removed from the front of the line.  "+list.getListString());
+            sendMsg(groupId, chatId, next + " is already in the server and has been removed from the front of the line.\n"+list.getListString());
+        } else {
+          if (playerCalledNext.get(next) == false) {
+            playerCalledNext.set(next, true);
+            var full = await isServerFull();
+            var msg = '';
+            if (full.startsWith('\"false\"')) { 
+                msg = 'Your slot is open - join the server! https://www.socalpug.com/join 60 second timer starts now';
+            } else {
+                msg = 'The server is still full.  Get on auto-join';
+            }
+            sendMsg(groupId, chatId, next + ' is next in line.\n[mention='+(nameToSteamIdObj.get(next)).accountid+
+            ']@'+next+'[/mention] '+msg);
+            // every 10 seconds check if they've connected
+              var intervalID = setInterval(async () => {
+                if (playerCalledNext.get(next) == true) {
+                  var alreadyConnected = await isInServer((nameToSteamIdObj.get(next)).getSteamID64());
+                  if (alreadyConnected) {
+                    list.dequeue(next);
+                    playerCalledNext.set(next, false);
+                    clearInterval(intervalID);
+                    sendMsg(groupId, chatId, next + ' joined the server and has been removed from the front of the line.\n'+list.getListString());
+                    msgToServer(next + ' joined the server and has been removed from the front of the line.   '+list.getListString())
+                  }
+                }
+              }, 10000);
+                          
+              // after 70 seconds, check if they're finally in, prompt to remove from line if not
+              if (playerCalledNext.get(next) == true) {
+                const timeoutID = setTimeout(async () => {
+                  alreadyConnected = await isInServer((nameToSteamIdObj.get(next)).getSteamID64()); 
+                  var stillInLine = list.isInLine(next);
+                  if (!alreadyConnected && stillInLine) {
+                    sendMsg(groupId, chatId, next + ' did not join the server or is set to invisible/offline.\nType !skip if he should be removed from the front of the line.');
+                  } else if (alreadyConnected && stillInLine) {
+                    list.dequeue(next);
+                    sendMsg(groupId, chatId, next + ' joined the server and has been removed from the front of the line.\n'+list.getListString());
+                    msgToServer(next + ' joined the server and has been removed from the front of the line.   '+list.getListString());
+                  }
+                  clearInterval(intervalID);
+                  playerCalledNext.set(next, false);
+                }, 70000);
+              }
+            }
+        }  
+    }
+  } else if (command === '!need') { 
+    var currentPlayers = await getCurrentPlayers();
+    sendMsg(groupId, chatId, currentPlayers + ' players in the server! Join up! https://www.socalpug.com/join');
+  } else if (command === '!topkills') {
+    var lastKiller = list.getLastKillerStr();
+    var killer = await getLastTopFragger(); 
+    if (!killer) {
+      killer = lastKiller;
+    }
+    if (killer && killer.length > 15) {
+      let removedQuotes = killer.replace(/["]+/g, '');
+      let toDecode = removedQuotes.replace(/\\\\x/g, '%');
+      msgToServer(decodeURIComponent(toDecode));
+    } 
+  }
+}
+
 
 async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordinal) {
   const sender = await getNickName(steamidObj.getSteamID64());
@@ -191,7 +302,7 @@ async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordina
     } else {
       var full = await isServerFull();
       if (full.startsWith('\"false\"') && list.isEmpty()) {
-        sendMsg(groupId, chatId, "NO LINE and slots are open in the server: 66.165.238.178:27018 - http://www.socalpug.com/join");
+        sendMsg(groupId, chatId, "NO LINE and slots are open in the server: 66.165.238.178:27018 - https://www.socalpug.com/join");
       }
       else {
         if (list.enqueue(sender)) {
@@ -211,7 +322,7 @@ async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordina
       var full = await isServerFull();
       if (full.startsWith('\"false\"')) { // not full
         if (list.isEmpty()) { 
-          sendMsg(groupId, chatId, "NO LINE and slots are open in the server: 66.165.238.178:27018 - www.socalpug.com/join"); 
+          sendMsg(groupId, chatId, "NO LINE and slots are open in the server: 66.165.238.178:27018 - https://www.socalpug.com/join"); 
         } else {
           sendMsg(groupId, chatId, list.getListString());
         }
@@ -241,7 +352,7 @@ async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordina
             var full = await isServerFull();
             var msg = '';
             if (full.startsWith('\"false\"')) { 
-                msg = 'Your slot is open - join the server! http://www.socalpug.com/join 60 second timer starts now';
+                msg = 'Your slot is open - join the server! https://www.socalpug.com/join 60 second timer starts now';
             } else {
                 msg = 'The server is still full.  Get on auto-join';
             }
@@ -285,7 +396,7 @@ async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordina
     '!remove Remove yourself, !next Alert the next player that it\'s their turn,'+' !replace Put whoever was skipped back in front of the line, ' + '!server Create a link to automatically join the server, !topkills Show who got top kills last pug');
   } else if (command === '!need') { 
     var currentPlayers = await getCurrentPlayers();
-    sendMsg(groupId, chatId, currentPlayers + ' players in the server! Join up! http://www.socalpug.com/join');
+    sendMsg(groupId, chatId, currentPlayers + ' players in the server! Join up! https://www.socalpug.com/join');
   } else if (command === '!skip') {
     const next = list.peek();
     if (next) { 
@@ -302,7 +413,7 @@ async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordina
       sendMsg(groupId, chatId, 'No one has been recently skipped');
     }
   } else if (command === '!website') {
-    sendMsg(groupId, chatId, 'http://www.socalpug.com/underconstruction');
+    sendMsg(groupId, chatId, 'http://www.socalpug.com/');
   } else if (command === '!help') {
     sendMsg(groupId, chatId, "https://github.com/socal-pug/chatbot/blob/main/README.md");
   } else if (command === '!topkills') {
@@ -327,6 +438,10 @@ async function isServerFull() {
   const response = await fetch('http://127.0.0.1:5000/isServerFull/');
   const body = await response.text();
   return body;
+}
+
+function msgToServer(toSay) {
+  fetch('http://127.0.0.1:5000/rconSay?say=' + toSay);
 }
 
 async function getCurrentPlayers() {
