@@ -339,6 +339,9 @@ async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordina
             client.chat.sendChatMessage(groupId, chatId, 'You are not in line, type !add to join');
         }, 600);
     }
+  } else if (command === '!score') {
+    var matchData = await getMatchStatus();
+    sendMsg(groupId, chatId, matchData);
   } else if (command === '!next') { 
     const next = list.peek();
     if (next) {
@@ -433,6 +436,25 @@ async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordina
  // }, 6000);
 }
 
+
+async function getMatchStatus() {
+  const response = await fetch('http://127.0.0.1:5000/matchData/');
+  const body = await response.text();
+  var half = "Second Half - ";
+  if (body) {
+    const arr = body.replace(/["()\n ]+/g, '').split(',');
+    if (arr[0] == 'False') {
+      return "Pug is not live.";
+    } else {
+      if (arr[1] == 'False') { // first half
+          half = "First Half - "
+      }
+      half += "CT: " + arr[2] + " - T: " + arr[3];
+      return half
+    }
+  }
+  return body;
+}
 
 async function isServerFull() {
   const response = await fetch('http://127.0.0.1:5000/isServerFull/');
