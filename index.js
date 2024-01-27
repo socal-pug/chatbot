@@ -18,26 +18,34 @@ server.on('error', (err) => {
 
 server.on('message', (msg, rinfo) => {
   if (msg.includes('say "!line"')) {
-    console.log('someone said line');
     if (list.isEmpty()) {
       msgToServer("Line is empty - use !need to request players from the chat");
     } else {
       msgToServer(list.getListString());
     }
   } else if (msg.includes('say "!next"')) {
-    console.log('said next');
     if (list.isEmpty()) {
       msgToServer("Line is empty - use !need to request players from the chat");
     } else {
       msgToServer("Now calling the next player in line");
-      customOutput(14783195, 50975794, "!next", null, null);
+      customOutput(14783195, 50975794, "!next", null, null, null, null);
     }
   } else if (msg.includes('say "!need"')) {
-    console.log('said need');
     msgToServer("Requesting players from the group chat");
-    customOutput(14783195, 50975794, "!need", null, null);
+    customOutput(14783195, 50975794, "!need", null, null, null, null);
   } else if (msg.includes('say "!topkills"')) {
-    customOutput(14783195, 50975794, "!topkills", null, null);
+    customOutput(14783195, 50975794, "!topkills", null, null, null, null);
+  } else if (msg.includes('say "-stats"')) {
+  //  let steamId = msg.toString().split('"')[1].split("><")[1].split("STEAM_")[1];
+   // console.log(steamId);
+    let arr = msg.toString().split('"');
+    let connectedAliasAndId = arr[1].split("><STEAM_")
+    let connectedAliasStr = connectedAliasAndId[0]
+    let senderAlias = connectedAliasStr.split("<")[0]
+
+    let connectedSteamIdStr = connectedAliasAndId[1]
+    let senderSteamId = connectedSteamIdStr.split("><")[0]
+    customOutput(14783195, 50975794, "-stats", null, null, senderSteamId, senderAlias);
   }
 });
 
@@ -67,9 +75,13 @@ var killerInterval = setInterval(async () => {
       let toDecode = removedQuotes.replace(/\\\\x/g, '%');
       sendMsg(14783195, 50975794, decodeURIComponent(toDecode));
       list.setLastKillerStr(killer);
+      let statsLink = await getLastPugStats();
+      setTimeout(() => {
+        populatePugDemoLinks();
+        sendMsg(14783195, 50975794, statsLink.replace(/["]+/g, ''));
+      }, 10000);
     }
   }
-
 }, 145000);
 
 async function getNickName(id) {
@@ -219,14 +231,14 @@ function sendMsg(groupId, chatId, msgToSend) {
     }
 }
 
-async function customOutput(groupId, chatId, command, serverTimestamp, ordinal) {
+async function customOutput(groupId, chatId, command, serverTimestamp, ordinal, senderSteamId, senderAlias) {
   if (command === '!next') { 
     const next = list.peek();
     if (next) {
         var alreadyConnected = await isInServer((nameToSteamIdObj.get(next)).getSteamID64()); 
         if (alreadyConnected) {
             list.dequeue(next);  
-            msgToServer(next + " is already in the server and has been removed from the front of the line.  "+list.getListString());
+            msgToServer(next + " is already in the server and has been removed from the line.  "+list.getListString());
             sendMsg(groupId, chatId, next + " is already in the server and has been removed from the front of the line.\n"+list.getListString());
         } else {
           if (playerCalledNext.get(next) == false) {
@@ -249,7 +261,7 @@ async function customOutput(groupId, chatId, command, serverTimestamp, ordinal) 
                     playerCalledNext.set(next, false);
                     clearInterval(intervalID);
                     sendMsg(groupId, chatId, next + ' joined the server and has been removed from the front of the line.\n'+list.getListString());
-                    msgToServer(next + ' joined the server and has been removed from the front of the line.   '+list.getListString())
+                    msgToServer(next + ' joined the server and has been removed from the line.   '+list.getListString())
                   }
                 }
               }, 10000);
@@ -287,6 +299,10 @@ async function customOutput(groupId, chatId, command, serverTimestamp, ordinal) 
       let toDecode = removedQuotes.replace(/\\\\x/g, '%');
       msgToServer(decodeURIComponent(toDecode));
     } 
+  } else if (command === '-stats') {
+    var stats = await getInGamePlayerStats(senderSteamId);
+    let msg = senderAlias.substring(0,5) + ' - ' + stats.replace(/["]+/g, '')
+    msgToServer(msg);
   }
 }
 
@@ -438,19 +454,23 @@ async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordina
 
 
 async function getMatchStatus() {
+  const mapResponse = await fetch('http://127.0.0.1:5000/currentMap/');
+  const mapName = await mapResponse.text();
   const response = await fetch('http://127.0.0.1:5000/matchData/');
   const body = await response.text();
-  var half = "Second Half - ";
+  const r = await fetch('http://127.0.0.1:5000/liveScores/');
+  const b = await r.text();
   if (body) {
     const arr = body.replace(/["()\n ]+/g, '').split(',');
+    const scores = b.replace(/["()\n ]+/g, '').split(',');
+    var liveScoresFirstHalf = mapName.replace(/["()\n ]+/g, '')+" - First Half - TEAM 1: "+scores[0]+" | TEAM 2: "+scores[1];
     if (arr[0] == 'False') {
       return "Pug is not live.";
     } else {
-      if (arr[1] == 'False') { // first half
-          half = "First Half - "
+      if (arr[1] == 'True') { // second half
+          liveScoresFirstHalf += '\nSecond Half - TEAM 1: '+scores[2]+' | TEAM 2: '+scores[3];
       }
-      half += "CT: " + arr[2] + " - T: " + arr[3];
-      return half
+      return liveScoresFirstHalf
     }
   }
   return body;
@@ -492,6 +512,25 @@ async function getLastTopFragger() {
   const body = await response.text();
   return body;
 }
+
+async function getInGamePlayerStats(steamId) {
+  let url = 'http://127.0.0.1:5000/inGamePlayerStats?playerId=';
+  url += steamId;
+  const response = await fetch(url);
+  const body = await response.text();
+  return body;
+}
+
+async function getLastPugStats() {
+  const response = await fetch('http://127.0.0.1:5000/latestPugStats/');
+  const body = await response.text();
+  return body;
+}
+
+async function populatePugDemoLinks() {
+  const response = await fetch('http://127.0.0.1:5000/populatePugDemoLinks/');
+}
+
 
 async function isInServer(player) {
     const playerName = await getNickName(player);
