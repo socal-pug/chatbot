@@ -44,7 +44,7 @@ server.on('message', (msg, rinfo) => {
 });
 
 setInterval(async () => {
-  const uptimeKuma = await fetch('http://socalpug.com:3001/api/push/ofIK26OXwM?status=up&msg=OK&ping=');
+ // const uptimeKuma = await fetch('http://socalpug.com:3001/api/push/ofIK26OXwM?status=up&msg=OK&ping=');
 }, 55000);
 
 setInterval(async () => {
