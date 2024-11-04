@@ -108,6 +108,7 @@ const logInOptions = {
 console.log(client);
 client.logOn(logInOptions);
 console.log('logged on?');
+console.log(client);
 client.on('loggedOn', async () => {
   console.log('Bot logged on');
   
