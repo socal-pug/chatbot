@@ -11,11 +11,12 @@ const server = dgram.createSocket('udp4');
 
 const client = new SteamUser();
 
-server.on('error', (err) => {
-  console.log(`server error:\n${err.stack}`);
-  server.close();
-});
+//server.on('error', (err) => {
+ // console.log(`server error:\n${err.stack}`);
+ // server.close();
+//});
 
+/*
 server.on('message', (msg, rinfo) => {
   if (msg.includes('say "!line"')) {
     if (list.isEmpty()) {
@@ -42,7 +43,7 @@ server.on('message', (msg, rinfo) => {
     customOutput(14783195, 50975794, "!replace", null, null, null, null);
   }
 });
-
+*/
 setInterval(async () => {
  // const uptimeKuma = await fetch('http://socalpug.com:3001/api/push/ofIK26OXwM?status=up&msg=OK&ping=');
 }, 55000);
@@ -54,13 +55,14 @@ setInterval(async () => {
   }
 }, 1800000);
 
+/*
 server.on('listening', () => {
   const address = server.address();
   console.log(`server listening ${address.address}:${address.port}`);
 });
 
 server.bind(27500);
-
+*/
 
 const nameToSteamIdObj = new Map();
 
@@ -103,9 +105,9 @@ const logInOptions = {
   password: config.password,
   twoFactorCode: SteamTotp.generateAuthCode(config.sharedSecret)
 };
-
+console.log(client);
 client.logOn(logInOptions);
-
+console.log('logged on?');
 client.on('loggedOn', async () => {
   console.log('Bot logged on');
   
