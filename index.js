@@ -11,11 +11,12 @@ const server = dgram.createSocket('udp4');
 
 const client = new SteamUser();
 
-server.on('error', (err) => {
-  console.log(`server error:\n${err.stack}`);
-  server.close();
-});
+//server.on('error', (err) => {
+ // console.log(`server error:\n${err.stack}`);
+ // server.close();
+//});
 
+/*
 server.on('message', (msg, rinfo) => {
   if (msg.includes('say "!line"')) {
     if (list.isEmpty()) {
@@ -42,10 +43,13 @@ server.on('message', (msg, rinfo) => {
     customOutput(14783195, 50975794, "!replace", null, null, null, null);
   }
 });
-
+*/
+/*
 setInterval(async () => {
  // const uptimeKuma = await fetch('http://socalpug.com:3001/api/push/ofIK26OXwM?status=up&msg=OK&ping=');
-}, 55000);
+}, 55000);]
+*/
+
 
 setInterval(async () => {
   var d = new Date(); 
@@ -54,13 +58,15 @@ setInterval(async () => {
   }
 }, 1800000);
 
+
+/*
 server.on('listening', () => {
   const address = server.address();
   console.log(`server listening ${address.address}:${address.port}`);
 });
 
 server.bind(27500);
-
+*/
 
 const nameToSteamIdObj = new Map();
 
@@ -69,6 +75,7 @@ var playerCalledNext = new Map();
 var executing = false;
 
 // every 2 mins check for top killa
+/*
 var killerInterval = setInterval(async () => {
   var killer = await getLastTopFragger(); 
   if (killer && killer.length > 15 && killer != list.getLastKillerStr()) {
@@ -86,6 +93,7 @@ var killerInterval = setInterval(async () => {
     }
   }
 }, 600000);
+*/
 
 async function getNickName(id) {
   const nick = await steam.getUserSummary(id).then(summary => {
@@ -104,6 +112,8 @@ const logInOptions = {
   twoFactorCode: SteamTotp.generateAuthCode(config.sharedSecret)
 };
 
+client.setOption("webCompatibilityMode", true);
+
 client.logOn(logInOptions);
 
 client.on('loggedOn', async () => {
@@ -112,10 +122,10 @@ client.on('loggedOn', async () => {
   client.setPersona(SteamUser.EPersonaState.Online, config.publicUsername);
   var d = new Date(); 
 
-  if (d.getHours() >= 17 || d.getHours() < 2) {
+  if (d.getHours() >= 16 || d.getHours() < 2) {
     var currentPlayers = await getCurrentPlayers();
     if (currentPlayers != "") {
-      client.chat.sendChatMessage(globalGroupId, globalChatId, currentPlayers + " players in the server! Join 66.165.238.178:27018", function(err, result){ 
+      client.chat.sendChatMessage(globalGroupId, globalChatId, currentPlayers + " players in the server! Join 162.248.93.11:27015", function(err, result){ 
       if(err){ 
           console.log(' caught at init') 
     //      var exec = require('child_process').exec;
@@ -256,7 +266,7 @@ client.chat.on('chatMessage', function(msgObj) {
         } else if (globalCommand) {
           output(steamidObj, groupId, chatId, globalCommand, serverTimestamp, ordinal);
         } else if (message.length > 1 && message.charAt(0) == "!") {
-          sendMsg(groupId, chatId, "Unknown command: "+message+". Use !commands or !help to see options.");
+          sendMsg(groupId, chatId, "Unknown command: "+message+". Use !line or !add");
         }
       }
     }
@@ -350,8 +360,9 @@ async function customOutput(groupId, chatId, command, serverTimestamp, ordinal, 
     }
   } else if (command === '!need') { 
     var currentPlayers = await getCurrentPlayers();
-    sendMsg(groupId, chatId, currentPlayers + ' players in the server! Join up! https://www.socalpug.com/join');
+    sendMsg(groupId, chatId, currentPlayers + ' players in the server! Join up! connect 162.248.93.11:27015');
   } else if (command === '!topkills') {
+    return;
     var lastKiller = list.getLastKillerStr();
     var killer = await getLastTopFragger(); 
     if (!killer) {
@@ -397,7 +408,7 @@ async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordina
       var full = await isServerFull();
       if (full.startsWith('\"false\"') && list.isEmpty()) {
         var currentPlayers = await getCurrentPlayers();
-        sendMsg(groupId, chatId, "NO LINE! "+currentPlayers + " players in the server! and slots are open in the server: 66.165.238.178:27018 - https://www.socalpug.com/join");
+        sendMsg(groupId, chatId, "NO LINE! "+currentPlayers + " players in the server! and slots are open in the server: 162.248.93.11:27015");
       }
       else {
         if (list.enqueue(sender)) {
@@ -418,7 +429,7 @@ async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordina
       if (full.startsWith('\"false\"')) { // not full
         if (list.isEmpty()) { 
           var currentPlayers = await getCurrentPlayers();
-          sendMsg(groupId, chatId, "NO LINE! "+currentPlayers + " players in the server! and slots are open in the server: 66.165.238.178:27018 - https://www.socalpug.com/join");
+          sendMsg(groupId, chatId, "NO LINE! "+currentPlayers + " players in the server! and slots are open in the server: 162.248.93.11:27015");
         } else {
           sendMsg(groupId, chatId, list.getListString());
         }
@@ -436,6 +447,7 @@ async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordina
         }, 600);
     }
   } else if (command === '!score') {
+    return;
     var matchData = await getMatchStatus();
     sendMsg(groupId, chatId, matchData);
   } else if (command === '!next') { 
@@ -493,11 +505,12 @@ async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordina
         sendMsg(groupId, chatId, list.getListString());
     }
   } else if (command === '!commands') {
+    return;
     sendMsg(groupId, chatId, 'Commands: '+'!line Show the current line, !add Add yourself, '+
     '!remove Remove yourself, !next Alert the next player that it\'s their turn,'+' !replace Put whoever was skipped back in front of the line, ' + '!server Create a link to automatically join the server, !topkills Show who got top kills last pug');
   } else if (command === '!need') { 
     var currentPlayers = await getCurrentPlayers();
-    sendMsg(groupId, chatId, currentPlayers + ' players in the server! Join up! https://www.socalpug.com/join');
+    sendMsg(groupId, chatId, currentPlayers + ' players in the server! Join up! connect 162.248.93.11:27015');
   } else if (command === '!skip') {
     const next = list.peek();
     if (next) { 
@@ -514,12 +527,16 @@ async function output(steamidObj, groupId, chatId, cmds, serverTimestamp, ordina
       sendMsg(groupId, chatId, 'No one has been recently skipped');
     }
   } else if (command === '!website') {
+    return;
     sendMsg(groupId, chatId, 'http://www.socalpug.com/');
   } else if (command === '!help') {
+    return;
     sendMsg(groupId, chatId, "https://github.com/socal-pug/chatbot/blob/main/README.md");
   } else if (command === '!stats') {
+    return;
     sendMsg(groupId, chatId, "https://www.socalpug.com/ranks");
   } else if (command === '!topkills') {
+    return;
     var lastKiller = list.getLastKillerStr();
     var killer = await getLastTopFragger(); 
     if (!killer) {
@@ -634,7 +651,7 @@ async function isInServer(player) {
     if (body) {  
         const currentIp = body.response.players[0]['gameserverip'];
         if (currentIp) {
-          if (currentIp === '66.165.238.178:27018') {
+          if (currentIp === '162.248.93.11:27015') {
             return true;
           } else {      
             return false;

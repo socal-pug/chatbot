@@ -7,7 +7,16 @@ module.exports = {
     uptimeKumaAccountPassword: process.env.UPTIME_KUMA_ACCOUNT_PASSWORD,
     uptimeKumaSharedSecret: process.env.UPTIME_KUMA_SHARED_SECRET,
     
-    lineCommands: [`!line`, `!add`, `!remove`, `!next`, `!commands`, `!need`, `!skip`, `!replace`, `!score`, `!stats`],
+    lineCommands: [`!line`, 
+    `!add`,
+     `!remove`, 
+     `!next`, 
+     `!commands`, 
+     `!need`, 
+     `!skip`, 
+     `!replace`, 
+     `!score`, 
+     `!stats`],
     globalCommands: [`!help`, `!website`, '!demos', `!server`, `!topkills`, `!stats`],
     uptimeKumaCommands: [`!link`, `!restart`],
     adminCommands: [`!clearline`, `!front`, `!remove`, `!back`, `!move`],
@@ -21,7 +30,6 @@ module.exports = {
     `wowalex`, // al these custon names don't work
     `76561197990284066`, // amorfy
     `76561197989353212`, // bong
-    `76561197960351162`, // psy
     `697917`], // j
     publicUsername: `LINE`,
     inGameName: `LINE`,
