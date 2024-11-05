@@ -44,7 +44,10 @@ server.on('message', (msg, rinfo) => {
   }
 });
 */
+<<<<<<< HEAD
 /*
+=======
+>>>>>>> a16a9d1b65711a8a0d7b980e223ab636f039e573
 setInterval(async () => {
  // const uptimeKuma = await fetch('http://socalpug.com:3001/api/push/ofIK26OXwM?status=up&msg=OK&ping=');
 }, 55000);]
@@ -58,7 +61,10 @@ setInterval(async () => {
   }
 }, 1800000);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> a16a9d1b65711a8a0d7b980e223ab636f039e573
 /*
 server.on('listening', () => {
   const address = server.address();
@@ -111,11 +117,16 @@ const logInOptions = {
   password: config.password,
   twoFactorCode: SteamTotp.generateAuthCode(config.sharedSecret)
 };
+<<<<<<< HEAD
 
 client.setOption("webCompatibilityMode", true);
 
+=======
+console.log(client);
+>>>>>>> a16a9d1b65711a8a0d7b980e223ab636f039e573
 client.logOn(logInOptions);
-
+console.log('logged on?');
+console.log(client);
 client.on('loggedOn', async () => {
   console.log('Bot logged on');
   
